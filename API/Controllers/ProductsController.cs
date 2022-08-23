@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using API.Dtos;
 using AutoMapper;
 using API.Errors;
+using API.Helpers;
 
 //derived class. It is derived from ControllerBase
 namespace API.Controllers
@@ -35,13 +36,17 @@ namespace API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IReadOnlyList<ProductToReturnDto>>> GetProducts(
+        public async Task<ActionResult<PaginationResponse<ProductToReturnDto>>> GetProducts(
             [FromQuery]ProductSpecParams productSpecParams) {
             
             var spec = new ProductsWithTypesAndBrandsSpecification(productSpecParams);
+            var countSpec = new ProductsWithTypesAndBrandsSpecification(productSpecParams);
+            var totalItems = await _productRepo.CountAsync(countSpec);
             var products = await _productRepo.ListAsync(spec); 
-            return Ok(_mapper
-                .Map<IReadOnlyList<Product>, IReadOnlyList<ProductToReturnDto>>(products));         
+            var data = _mapper
+                .Map<IReadOnlyList<Product>, IReadOnlyList<ProductToReturnDto>>(products);
+            return Ok(new PaginationResponse<ProductToReturnDto>(productSpecParams.PageIndex,
+            productSpecParams.PageSize, totalItems, data));         
             }
 
         [HttpGet("{id}")]
