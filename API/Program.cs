@@ -23,6 +23,13 @@ builder.Services.AddDbContext<StoreContext>(x => x.UseSqlite(connString));
 builder.Services.AddEndpointsApiExplorer();
 builder.AddApplicationServices();
 builder.Services.AddSwaggerGen();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy", policy=>
+    {
+        policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://localhost:7307");
+    });
+});
 
 var app = builder.Build();
 using(var scope = app.Services.CreateScope())
@@ -56,7 +63,7 @@ app.UseHttpsRedirection();
 
 app.UseRouting();
 app.UseStaticFiles();
-
+app.UseCors("CorsPolicy");
 app.UseAuthorization();
 
 app.MapControllers();
